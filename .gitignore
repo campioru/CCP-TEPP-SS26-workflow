@@ -1,0 +1,23 @@
+# Common temporary files
+thumbs.db
+.DS_Store
+
+# Python compiled objects
+*.pyc
+__pycache__/
+.mypy_cache/
+
+# Snakemake cache
+.snakemake/
+
+# Workflow outputs
+assets/
+data_assets/
+intermediary_data/
+
+# Workflow inputs that should not be held together with code
+raw_data/
+
+# Common editor temporary files
+*~
+.#*#

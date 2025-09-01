@@ -1,0 +1,3 @@
+[submodule "libs/su2pg_analysis"]
+	path = libs/su2pg_analysis
+	url = https://github.com/edbennett/su2pg_analysis
