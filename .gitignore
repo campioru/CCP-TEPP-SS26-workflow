@@ -17,6 +17,7 @@ intermediary_data/
 
 # Workflow inputs that should not be held together with code
 raw_data/
+metadata/
 
 # Common editor temporary files
 *~
