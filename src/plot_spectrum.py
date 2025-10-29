@@ -38,7 +38,7 @@ def zero_axis(ax, x_or_y):
 
 def get_ylabel(observables, rescale_w0):
     if len(observables) == 1:
-        _, label = parse_observable(observables[0])
+        _, label = parse_observable(observables[0], rescale_w0)
         return label
     elif len(set(observable[0] for observable in observables)) == 1:
         if rescale_w0:
@@ -83,7 +83,7 @@ def plot(data, x_observable, y_observables, zero_x_axis, zero_y_axis, rescale_w0
             label=y_label,
             color=f"C{color_index}",
         )
-        
+
     ax.set_xlabel(x_label)
     ax.set_ylabel(get_ylabel(y_observables, rescale_w0))
 
