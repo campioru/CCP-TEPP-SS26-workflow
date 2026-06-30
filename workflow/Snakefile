@@ -23,14 +23,15 @@ rule avg_plaquette:
 
 
 # Compute the energy scale
-rule compute_w0:
+rule compute_plot_w0:
     input:
         "raw_data/{subdir}/out_wflow"
     output:
-        "intermediary_data/{subdir}/wflow.w0.json.gz"
+        data="intermediary_data/{subdir}/wflow.w0.json.gz",
+        plot=multiext("intermediary_data/{subdir}/wflow.w0", config["plot_filetype"])
     conda: "envs/analysis.yml"
     shell:
-        "python -m su2pg_analysis.w0 {input} --output_file {output} --W0 {config[W0_ref]}"
+        "python -m su2pg_analysis.w0 {input} --plot_filename {output.plot} --output_filename {output.data} --W0 {config[W0_ref]} --plot_styles {config[plot_styles]}"
 
 
 # Compute pseudoscalar mass and amplitude with fixed plateau
@@ -60,6 +61,18 @@ rule v_mass:
     conda: "envs/analysis.yml"
     shell:
         "python -m su2pg_analysis.meson_mass --channel v {input} --output_file {output} --plateau_start {params.plateau_start} --plateau_end {params.plateau_end}"
+
+
+# Estimate renormalised decay constant
+rule one_loop_matching:
+    input:
+        plaquette="intermediary_data/{subdir}/pg.plaquette.json.gz",
+        meson="intermediary_data/{subdir}/corr.{channel}_mass.json.gz"
+    output:
+        data="intermediary_data/{subdir}/pg.corr.{channel}_decay_constant.json.gz"
+    conda: "envs/analysis.yml"
+    shell:
+        "python -m su2pg_analysis.one_loop_matching --plaquette_data {input.plaquette} --spectral_observable_data {input.meson} --output_filename {output.data}"
 
 
 # Take individual data files for average plaquette and plot combined result
