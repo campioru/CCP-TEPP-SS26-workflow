@@ -1,0 +1,44 @@
+# Count number of generated trajectories for any ensemble
+rule count_trajectories:
+    input: "raw_data/{subdir}/out_{file_type}"
+    output: "intermediary_data/{subdir}/{file_type}.count"
+    shell:
+        #"wc -l raw_data/beta2.0/out_pg > intermediary_data/beta2.0/pg.count"
+        "grep -c generated {input} > {output}"
+
+
+rule avg_plaquette:
+    input:
+        "raw_data/{subdir}/out_pg"
+    output:
+        "intermediary_data/{subdir}/pg.plaquette.json.gz"
+    conda: "envs/analysis.yml"
+    shell:
+        "python -m su2pg_analysis.plaquette {input} --output_file {output}"
+
+
+# Take individual data files for average plaquette and plot combined result
+rule plot_avg_plaquette:
+    input:
+        expand(
+            "intermediary_data/beta{beta}/pg.plaquette.json.gz",
+            beta=[1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5]
+        )
+    output:
+        "assets/plots/plaquette_scan.pdf"
+    conda: "envs/analysis.yml"
+    shell:
+        "python src/plot_plaquette.py {input} --output_filename {output}"
+
+
+rule LaTeX_count_table:
+    input:
+        expand(
+            "intermediary_data/beta{beta}/pg.count",
+            beta=[1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5]
+        )
+    output:
+        "assets/tables/counts.tex"
+    conda: "envs/analysis.yml"
+    shell:
+        "python src/tabulate_counts.py {input} --output_file {output}"
