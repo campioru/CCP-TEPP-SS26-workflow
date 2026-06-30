@@ -1,3 +1,5 @@
+configfile: "config/config.yaml"
+
 # Count number of generated trajectories for any ensemble
 rule count_trajectories:
     input: "raw_data/{subdir}/out_{file_type}"
@@ -28,7 +30,7 @@ rule plot_avg_plaquette:
         "assets/plots/plaquette_scan.pdf"
     conda: "envs/analysis.yml"
     shell:
-        "python src/plot_plaquette.py {input} --output_filename {output}"
+        "python src/plot_plaquette.py {input} --output_filename {output} --plot_styles {config[plot_styles]}"
 
 
 rule LaTeX_count_table:
