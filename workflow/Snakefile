@@ -44,3 +44,14 @@ rule LaTeX_count_table:
     conda: "envs/analysis.yml"
     shell:
         "python src/tabulate_counts.py {input} --output_file {output}"
+
+
+# Compute the energy scale
+rule compute_w0:
+    input:
+        "raw_data/{subdir}/out_wflow"
+    output:
+        "intermediary_data/{subdir}/wflow.w0.json.gz"
+    conda: "envs/analysis.yml"
+    shell:
+        "python -m su2pg_analysis.w0 {input} --output_file {output} --W0 {config[W0_ref]}"
