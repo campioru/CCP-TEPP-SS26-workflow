@@ -38,13 +38,14 @@ rule ps_mass:
     input:
         "raw_data/beta{beta}/out_corr"
     output:
-        "intermediary_data/beta{beta}/corr.ps_mass.json.gz"
+        data="intermediary_data/beta{beta}/corr.ps_mass.json.gz",
+        plot=multiext("intermediary_data/beta{beta}/corr_ps.eff_mass", config["plot_filetype"])
     params:
         plateau_start=lookup(within=metadata, query="beta == {beta}", cols="ps_plateau_start"),
         plateau_end=lookup(within=metadata, query="beta == {beta}", cols="ps_plateau_end")
     conda: "envs/analysis.yml"
     shell:
-        "python -m su2pg_analysis.meson_mass {input} --output_file {output} --plateau_start {params.plateau_start} --plateau_end {params.plateau_end}"
+        "python -m su2pg_analysis.meson_mass {input} --plot_file {output.plot} --output_file {output.data} --plateau_start {params.plateau_start} --plateau_end {params.plateau_end}"
 
 
 # Compute vector mass and amplitude with fixed plateau
