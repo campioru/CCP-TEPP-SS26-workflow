@@ -1,5 +1,8 @@
 configfile: "config/config.yaml"
 
+import pandas as pd
+metadata = pd.read_csv("metadata/ensemble_metadata.csv")
+
 # Count number of generated trajectories for any ensemble
 rule count_trajectories:
     input: "raw_data/{subdir}/out_{file_type}"
@@ -17,6 +20,45 @@ rule avg_plaquette:
     conda: "envs/analysis.yml"
     shell:
         "python -m su2pg_analysis.plaquette {input} --output_file {output}"
+
+
+# Compute the energy scale
+rule compute_w0:
+    input:
+        "raw_data/{subdir}/out_wflow"
+    output:
+        "intermediary_data/{subdir}/wflow.w0.json.gz"
+    conda: "envs/analysis.yml"
+    shell:
+        "python -m su2pg_analysis.w0 {input} --output_file {output} --W0 {config[W0_ref]}"
+
+
+# Compute pseudoscalar mass and amplitude with fixed plateau
+rule ps_mass:
+    input:
+        "raw_data/beta{beta}/out_corr"
+    output:
+        "intermediary_data/beta{beta}/corr.ps_mass.json.gz"
+    params:
+        plateau_start=lookup(within=metadata, query="beta == {beta}", cols="ps_plateau_start"),
+        plateau_end=lookup(within=metadata, query="beta == {beta}", cols="ps_plateau_end")
+    conda: "envs/analysis.yml"
+    shell:
+        "python -m su2pg_analysis.meson_mass {input} --output_file {output} --plateau_start {params.plateau_start} --plateau_end {params.plateau_end}"
+
+
+# Compute vector mass and amplitude with fixed plateau
+rule v_mass:
+    input:
+        "raw_data/beta{beta}/out_corr"
+    output:
+        "intermediary_data/beta{beta}/corr.v_mass.json.gz"
+    params:
+        plateau_start=lookup(within=metadata, query="beta == {beta}", cols="v_plateau_start"),
+        plateau_end=lookup(within=metadata, query="beta == {beta}", cols="v_plateau_end")
+    conda: "envs/analysis.yml"
+    shell:
+        "python -m su2pg_analysis.meson_mass --channel v {input} --output_file {output} --plateau_start {params.plateau_start} --plateau_end {params.plateau_end}"
 
 
 # Take individual data files for average plaquette and plot combined result
@@ -44,14 +86,3 @@ rule LaTeX_count_table:
     conda: "envs/analysis.yml"
     shell:
         "python src/tabulate_counts.py {input} --output_file {output}"
-
-
-# Compute the energy scale
-rule compute_w0:
-    input:
-        "raw_data/{subdir}/out_wflow"
-    output:
-        "intermediary_data/{subdir}/wflow.w0.json.gz"
-    conda: "envs/analysis.yml"
-    shell:
-        "python -m su2pg_analysis.w0 {input} --output_file {output} --W0 {config[W0_ref]}"
