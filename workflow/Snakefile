@@ -69,7 +69,7 @@ rule one_loop_matching:
         plaquette="intermediary_data/{subdir}/pg.plaquette.json.gz",
         meson="intermediary_data/{subdir}/corr.{channel}_mass.json.gz"
     output:
-        data="intermediary_data/{subdir}/pg.corr.{channel}_decay_constant.json.gz"
+        data="intermediary_data/{subdir}/pg.corr.{channel}_decay_const.json.gz"
     conda: "envs/analysis.yml"
     shell:
         "python -m su2pg_analysis.one_loop_matching --plaquette_data {input.plaquette} --spectral_observable_data {input.meson} --output_filename {output.data}"
@@ -100,3 +100,18 @@ rule LaTeX_count_table:
     conda: "envs/analysis.yml"
     shell:
         "python src/tabulate_counts.py {input} --output_file {output}"
+
+
+# Plot pseudoscalar decay constant against mass
+rule spectrum:
+    input:
+        script="src/plot_spectrum.py",
+        ps_mass=expand("intermediary_data/beta{beta}/corr.ps_mass.json.gz",
+            beta=[1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5]),
+        ps_decay_const=expand("intermediary_data/beta{beta}/corr.ps_decay_const.json.gz", 
+            beta=[1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5])
+    output:
+        plot=multiext("assets/plots/spectrum", config["plot_filetype"])
+    conda: "envs/analyis.yml"
+    shell:
+        "python {input.script} {input.ps_mass} {input.ps_decay_const} --y_observable f_ps --zero_y_axis --zero_x_axis --output_file {output.plot} --plot_styles {config[plot_styles]}"
